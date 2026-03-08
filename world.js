@@ -58,7 +58,7 @@ export class World {
     update(dt) {}
 
     renderBackground(ctx) {
-        ctx.fillStyle = "#050810";
+        ctx.fillStyle = "red";
         ctx.fillRect(0, 0, 1280, 720);
     }
 
