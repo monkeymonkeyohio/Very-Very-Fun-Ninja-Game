@@ -170,23 +170,24 @@ class Player {
     }
 
     update() {
-        // Movement
-        if (keys["ArrowLeft"]) {
-            this.vx = -this.speed;
-            this.facing = -1;
-        } else if (keys["ArrowRight"]) {
-            this.vx = this.speed;
-            this.facing = 1;
-        } else {
-            this.vx = 0;
-        }
+       // Horizontal movement (A / D / Arrow keys)
+if (keys["a"] || keys["A"] || keys["ArrowLeft"]) {
+    this.vx = -this.speed;
+    this.facing = -1;
+} else if (keys["d"] || keys["D"] || keys["ArrowRight"]) {
+    this.vx = this.speed;
+    this.facing = 1;
+} else {
+    this.vx = 0;
+}
 
-        // Jump
-        if (keys["ArrowUp"] && this.onGround) {
-            this.vy = -this.jumpPower;
-            this.onGround = false;
-        }
-
+// Jump (W / ArrowUp)
+if ((keys["w"] || keys["W"] || keys["ArrowUp"]) && this.onGround) {
+    this.vy = -this.jumpPower;
+    this.onGround = false;
+}
+  
+       
         // Gravity
         this.vy += this.gravity;
 
