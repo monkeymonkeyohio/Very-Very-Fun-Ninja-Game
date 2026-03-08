@@ -2,7 +2,7 @@
    ENGINE.JS — MAIN LOOP & ORCHESTRATION (ES MODULE)
 ============================================================ */
 
-console.log("ENGINE 3/8/2026 VERSION LOADED (ESM)");
+console.log("ENGINE 3/8/2026 VERSION LOADED (Sprites Update)");
 
 import { loadAssets } from "./assets.js";
 import { Player } from "./player.js";
