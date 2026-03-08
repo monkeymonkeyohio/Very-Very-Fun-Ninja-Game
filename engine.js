@@ -1,64 +1,40 @@
 /* ============================================================
-   ENGINE.JS — MAIN LOOP & ORCHESTRATION (ES MODULE)
+   ENGINE.JS — MAIN GAME LOOP & RENDER PIPELINE
 ============================================================ */
-
-console.log("ENGINE 3/8/2026 VERSION LOADED (player.js fix)");
 
 import { loadAssets } from "./assets.js";
 import { Player } from "./player.js";
-import { CombatSystem } from "./combat.js";
-import { AbilitySystem } from "./abilities.js";
-import { EnemyManager } from "./enemies.js";
 import { World } from "./world.js";
 import { FXSystem } from "./fx.js";
-
+import { EnemyManager } from "./enemies.js";
 
 /* ------------------------------------------------------------
-   TITLE SCREEN → START BUTTON
+   GLOBALS
 ------------------------------------------------------------ */
-const titleScreen = document.getElementById("titleScreen");
-const startButton = document.getElementById("startButton");
+let assets = null;
+let player = null;
+let worldData = null;
+let fxSystem = null;
+let enemyManager = null;
 
-startButton.addEventListener("click", () => {
-    titleScreen.style.display = "none";
-});
+let lastTime = 0;
 
 /* ------------------------------------------------------------
    CANVAS SETUP
 ------------------------------------------------------------ */
-const bg = document.getElementById("bg");
-const world = document.getElementById("world");
-const fx = document.getElementById("fx");
+const bgCanvas = document.getElementById("bg");
+const worldCanvas = document.getElementById("world");
+const fxCanvas = document.getElementById("fx");
 
-const bgCtx = bg.getContext("2d");
-const worldCtx = world.getContext("2d");
-const fxCtx = fx.getContext("2d");
+const bgCtx = bgCanvas.getContext("2d");
+const worldCtx = worldCanvas.getContext("2d");
+const fxCtx = fxCanvas.getContext("2d");
 
-let W = 1280;
-let H = 720;
-
-function resize() {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const targetRatio = 16 / 9;
-    let w = vw;
-    let h = vw / targetRatio;
-    if (h > vh) {
-        h = vh;
-        w = vh * targetRatio;
-    }
-    [bg, world, fx].forEach(c => {
-        c.width = W;
-        c.height = H;
-        c.style.width = w + "px";
-        c.style.height = h + "px";
-    });
-}
-window.addEventListener("resize", resize);
-resize();
+const W = worldCanvas.width;
+const H = worldCanvas.height;
 
 /* ------------------------------------------------------------
-   INPUT
+   INPUT HANDLING
 ------------------------------------------------------------ */
 const keys = new Set();
 
@@ -71,43 +47,21 @@ window.addEventListener("keyup", e => {
 });
 
 /* ------------------------------------------------------------
-   GAME OBJECTS
+   UPDATE
 ------------------------------------------------------------ */
-const assets = await loadAssets();
-
-const worldData = new World();
-const fxSystem = new FXSystem(fxCtx);
-const enemyManager = new EnemyManager(worldData, fxSystem);
-const player = new Player(worldData, fxSystem);
-const combat = new CombatSystem(player, enemyManager, fxSystem);
-const abilities = new AbilitySystem(player, enemyManager, fxSystem);
-
-/* ------------------------------------------------------------
-   MAIN LOOP
------------------------------------------------------------- */
-let lastTime = performance.now();
-
 function update(dt) {
-    // Input → Player
     player.handleInput(keys);
     player.update(dt);
 
-    // Combat & abilities
-    combat.update(dt, keys);
-    abilities.update(dt, keys);
-
-    // Enemies
     enemyManager.update(dt, player);
-
-    // World
-    worldData.update(dt);
-
-    // FX
     fxSystem.update(dt);
 }
 
+/* ------------------------------------------------------------
+   RENDER
+------------------------------------------------------------ */
 function render() {
-    // Clear
+    // Clear canvases
     bgCtx.clearRect(0, 0, W, H);
     worldCtx.clearRect(0, 0, W, H);
     fxCtx.clearRect(0, 0, W, H);
@@ -115,22 +69,25 @@ function render() {
     // Background
     worldData.renderBackground(bgCtx);
 
-    // World & platforms
+    // World geometry
     worldData.render(worldCtx);
 
     // Enemies
-    enemyManager.render(worldCtx);
+    enemyManager.render(worldCtx, assets);
 
-    // Player
-    player.render(worldCtx);
+    // Player (IMPORTANT: pass assets!)
+    player.render(worldCtx, assets);
 
     // FX
-    fxSystem.render(fxCtx);
+    fxSystem.render(fxCtx, assets);
 }
 
-function loop(now) {
-    const dt = Math.min((now - lastTime) / 1000, 0.033);
-    lastTime = now;
+/* ------------------------------------------------------------
+   MAIN LOOP
+------------------------------------------------------------ */
+function loop(timestamp) {
+    const dt = (timestamp - lastTime) / 1000;
+    lastTime = timestamp;
 
     update(dt);
     render();
@@ -138,4 +95,25 @@ function loop(now) {
     requestAnimationFrame(loop);
 }
 
-requestAnimationFrame(loop);
+/* ------------------------------------------------------------
+   START GAME
+------------------------------------------------------------ */
+async function start() {
+    console.log("ENGINE 3/8/2026 VERSION LOADED (Assets Fix)");
+
+    // Load assets FIRST
+    assets = await loadAssets();
+
+    // Create world + systems
+    worldData = new World();
+    fxSystem = new FXSystem();
+    enemyManager = new EnemyManager(worldData, fxSystem);
+
+    // Create player
+    player = new Player(worldData, fxSystem);
+
+    // Start loop
+    requestAnimationFrame(loop);
+}
+
+start();
