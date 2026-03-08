@@ -12,6 +12,17 @@ import { EnemyManager } from "./enemies.js";
 import { World } from "./world.js";
 import { FXSystem } from "./fx.js";
 
+
+/* ------------------------------------------------------------
+   TITLE SCREEN → START BUTTON
+------------------------------------------------------------ */
+const titleScreen = document.getElementById("titleScreen");
+const startButton = document.getElementById("startButton");
+
+startButton.addEventListener("click", () => {
+    titleScreen.style.display = "none";
+});
+
 /* ------------------------------------------------------------
    CANVAS SETUP
 ------------------------------------------------------------ */
