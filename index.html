@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SHINOBI: LAST MAN STANDING — Protocol 1252</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- TITLE SCREEN -->
+    <div id="titleScreen">
+        <div id="titleContainer">
+            <h1 id="gameTitle">SHINOBI: LAST MAN STANDING</h1>
+            <h2 id="gameSubtitle">Protocol 1252</h2>
+
+            <button id="startButton">
+                START GAME
+                <div class="underline"></div>
+            </button>
+        </div>
+
+        <!-- Background Effects -->
+        <canvas id="titleParticles"></canvas>
+        <div id="titleSpotlight"></div>
+        <div id="scanlines"></div>
+    </div>
+
+    <!-- GAME VIEWPORT (16:9 LETTERBOXED) -->
+    <div id="viewportContainer">
+        <div id="viewport">
+            <canvas id="bg"></canvas>
+            <canvas id="world"></canvas>
+            <canvas id="fx"></canvas>
+        </div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div id="playerHP"></div>
+        <div id="enemyHP"></div>
+    </div>
+
+    <script src="assets.js"></script>
+    <script src="engine.js"></script>
+
+</body>
+</html>
