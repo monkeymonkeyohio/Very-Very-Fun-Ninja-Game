@@ -1,162 +1,99 @@
 /* ============================================================
-   ASSETS.JS — WORLD DATA, PARKOUR GENERATION, OBSTACLES
+   ASSETS.JS — SPRITES / AUDIO LOADER (ES MODULE)
    SHINOBI: LAST MAN STANDING — Protocol 1252
 ============================================================ */
 
-/* ------------------------------------------------------------
-   GLOBAL CONSTANTS
------------------------------------------------------------- */
-const WORLD_WIDTH = 2400;       // Arena width
-const WORLD_HEIGHT = 900;       // Arena height
+/*
+    This loader is designed to be:
+    - fully asynchronous
+    - easy to expand
+    - safe if assets fail
+    - compatible with GitHub Pages
+    - clean for ES modules
 
-const PARKOUR_SEGMENTS_MIN = 6;
-const PARKOUR_SEGMENTS_MAX = 8;
+    Usage:
+        const assets = await loadAssets();
+        assets.img.playerIdle   → Image object
+        assets.sfx.swordSwing   → Audio object
+*/
 
-const PLATFORM_WIDTH = 220;
-const PLATFORM_HEIGHT = 30;
-
-const SPIKE_DAMAGE = 40;
-const LASER_DAMAGE = 60;
-const BOMB_DAMAGE = 120;
-
-/* ------------------------------------------------------------
-   UTILITY FUNCTIONS
------------------------------------------------------------- */
-function rand(min, max) {
-    return Math.random() * (max - min) + min;
-}
-
-function randInt(min, max) {
-    return Math.floor(rand(min, max));
-}
-
-function chance(p) {
-    return Math.random() < p;
-}
-
-/* ------------------------------------------------------------
-   PLATFORM OBJECT
------------------------------------------------------------- */
-class Platform {
-    constructor(x, y, w = PLATFORM_WIDTH, h = PLATFORM_HEIGHT) {
-        this.x = x;
-        this.y = y;
-        this.w = w;
-        this.h = h;
-        this.type = "platform";
-    }
-}
-
-/* ------------------------------------------------------------
-   SPIKE OBJECT
------------------------------------------------------------- */
-class Spike {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.w = 60;
-        this.h = 40;
-        this.damage = SPIKE_DAMAGE;
-        this.type = "spike";
-    }
-}
-
-/* ------------------------------------------------------------
-   LASER OBJECT
------------------------------------------------------------- */
-class Laser {
-    constructor(x, y, vertical = true) {
-        this.x = x;
-        this.y = y;
-        this.vertical = vertical;
-        this.length = vertical ? 300 : 500;
-        this.damage = LASER_DAMAGE;
-        this.type = "laser";
-    }
-}
-
-/* ------------------------------------------------------------
-   BOMB OBJECT
------------------------------------------------------------- */
-class Bomb {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.radius = 40;
-        this.timer = rand(2.5, 4.5);
-        this.damage = BOMB_DAMAGE;
-        this.type = "bomb";
-    }
-}
-
-/* ------------------------------------------------------------
-   DIAMOND OBJECT
------------------------------------------------------------- */
-class Diamond {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.w = 40;
-        this.h = 40;
-        this.type = "diamond";
-    }
-}
-
-/* ------------------------------------------------------------
-   PARKOUR GENERATION
------------------------------------------------------------- */
-function generateParkour() {
-    const segments = randInt(PARKOUR_SEGMENTS_MIN, PARKOUR_SEGMENTS_MAX + 1);
-
-    const platforms = [];
-    const spikes = [];
-    const lasers = [];
-    const bombs = [];
-
-    let x = 200;
-    let y = 500;
-
-    for (let i = 0; i < segments; i++) {
-        // Create platform
-        const p = new Platform(x, y);
-        platforms.push(p);
-
-        // Random obstacles
-        if (chance(0.35)) spikes.push(new Spike(x + randInt(20, 160), y - 40));
-        if (chance(0.25)) lasers.push(new Laser(x + randInt(40, 160), y - 200, chance(0.5)));
-        if (chance(0.20)) bombs.push(new Bomb(x + randInt(20, 160), y - 20));
-
-        // Move to next platform
-        x += randInt(260, 420);
-        y += randInt(-120, 120);
-
-        // Clamp vertical range
-        y = Math.max(200, Math.min(700, y));
-    }
-
-    // Final platform gets the diamond
-    const last = platforms[platforms.length - 1];
-    const diamond = new Diamond(last.x + last.w / 2 - 20, last.y - 50);
-
-    return {
-        platforms,
-        spikes,
-        lasers,
-        bombs,
-        diamond,
-        width: x + 400,
-        height: 900
+export async function loadAssets() {
+    const assets = {
+        img: {},
+        sfx: {}
     };
-}
 
-/* ------------------------------------------------------------
-   EXPORT
------------------------------------------------------------- */
-const Assets = {
-    generateParkour,
-    Platform,
-    Spike,
-    Laser,
-    Bomb,
-    Diamond
-};
+    /* ------------------------------------------------------------
+       IMAGE LOADER
+    ------------------------------------------------------------ */
+    async function loadImage(name, src) {
+        return new Promise(resolve => {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => resolve(img);
+            img.onerror = () => {
+                console.warn(`Image failed to load: ${src}`);
+                resolve(null);
+            };
+        });
+    }
+
+    /* ------------------------------------------------------------
+       AUDIO LOADER
+    ------------------------------------------------------------ */
+    async function loadAudio(name, src, volume = 1.0) {
+        return new Promise(resolve => {
+            const audio = new Audio();
+            audio.src = src;
+            audio.volume = volume;
+            audio.oncanplaythrough = () => resolve(audio);
+            audio.onerror = () => {
+                console.warn(`Audio failed to load: ${src}`);
+                resolve(null);
+            };
+        });
+    }
+
+    /* ------------------------------------------------------------
+       DEFINE YOUR ASSETS HERE
+       (You can add sprites later without touching other files)
+    ------------------------------------------------------------ */
+
+    const imageList = {
+        // Example placeholders — add your sprites later:
+        playerIdle: "assets/player_idle.png",
+        playerRun: "assets/player_run.png",
+        enemyBasic: "assets/enemy_basic.png",
+        fxSpark: "assets/fx_spark.png",
+        fxPortal: "assets/fx_portal.png"
+    };
+
+    const audioList = {
+        swordSwing: "assets/sfx_swing.wav",
+        swordHit: "assets/sfx_hit.wav",
+        parry: "assets/sfx_parry.wav",
+        shuriken: "assets/sfx_shuriken.wav",
+        laser: "assets/sfx_laser.wav",
+        portal: "assets/sfx_portal.wav"
+    };
+
+    /* ------------------------------------------------------------
+       LOAD IMAGES
+    ------------------------------------------------------------ */
+    for (const [name, src] of Object.entries(imageList)) {
+        assets.img[name] = await loadImage(name, src);
+    }
+
+    /* ------------------------------------------------------------
+       LOAD AUDIO
+    ------------------------------------------------------------ */
+    for (const [name, src] of Object.entries(audioList)) {
+        assets.sfx[name] = await loadAudio(name, src, 0.8);
+    }
+
+    /* ------------------------------------------------------------
+       RETURN ASSET OBJECT
+    ------------------------------------------------------------ */
+    console.log("Assets loaded:", assets);
+    return assets;
+}
